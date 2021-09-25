@@ -14,10 +14,11 @@ class ListenerProvider implements \Psr\EventDispatcher\ListenerProviderInterface
 	 *
 	 * @param string $eventName
 	 * @param callable $listener
+	 * @param integer $priority
 	 * @return void
 	 */
-	public function addListener(string $eventName, callable $listener) {
-		$this->listeners[$eventName][] = $listener;
+	public function addListener(string $eventName, callable $listener, int $priority = 0) {
+		$this->listeners[$eventName][$priority][] = $listener;
 	}
 
 	/**
@@ -27,7 +28,9 @@ class ListenerProvider implements \Psr\EventDispatcher\ListenerProviderInterface
 	 */
 	public function getListenersForEvent(object $event) : iterable {
 		$eventName = $event instanceof IEvent ? $event->getName() : get_class($event);
-		return $this->listeners[$eventName] ?? [];
+		if (!isset($this->listeners[$eventName])) return [];
+		krsort($this->listeners[$eventName]);
+		return array_merge(...$this->listeners[$eventName]);
 	}
 
 }

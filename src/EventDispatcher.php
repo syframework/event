@@ -36,10 +36,11 @@ class EventDispatcher implements \Psr\EventDispatcher\EventDispatcherInterface {
 	 *
 	 * @param string $eventName
 	 * @param callable $listener
+	 * @param integer $priority
 	 * @return void
 	 */
-	public function addListener(string $eventName, callable $listener) {
-		$this->getListenerProvider()->addListener($eventName, $listener);
+	public function addListener(string $eventName, callable $listener, int $priority = 0) {
+		$this->getListenerProvider()->addListener($eventName, $listener, $priority);
 	}
 
 	/**

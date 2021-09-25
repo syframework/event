@@ -83,17 +83,37 @@ class EventDispatcherTest extends \PHPUnit\Framework\TestCase {
 			$count++;
 		});
 
-		$this->assertNotSame($listenerProvider, $this->eventDispatcher->getListenerProvider());
-
 		$this->eventDispatcher->setListenerProvider($listenerProvider);
-
-		$this->assertSame($listenerProvider, $this->eventDispatcher->getListenerProvider());
 
 		// Dispatch an event called "myEvent"
 		$this->eventDispatcher->dispatch(new Event('myEvent'));
 
 		$this->assertEquals('hello', $foo);
 		$this->assertEquals(1, $count);
+	}
+
+	public function testEventPriority() {
+		global $foo, $count;
+
+		$listenerProvider = new ListenerProvider();
+		$listenerProvider->addListener('myEvent', function (object $event) {
+			global $foo, $count;
+			$foo = 'hello';
+			$count++;
+		});
+		$listenerProvider->addListener('myEvent', function (object $event) {
+			global $foo, $count;
+			$foo = 'world';
+			$count++;
+		}, 1);
+
+		$this->eventDispatcher->setListenerProvider($listenerProvider);
+
+		// Dispatch an event called "myEvent"
+		$this->eventDispatcher->dispatch(new Event('myEvent'));
+
+		$this->assertEquals('hello', $foo);
+		$this->assertEquals(2, $count);
 	}
 
 }
