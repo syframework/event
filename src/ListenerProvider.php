@@ -3,10 +3,23 @@ namespace Sy\Event;
 
 class ListenerProvider implements \Psr\EventDispatcher\ListenerProviderInterface {
 
+	/**
+	 * Listeners array
+	 *
+	 * @var array
+	 */
 	private $listeners;
+
+	/**
+	 * Cache for listeners already sorted by priority
+	 *
+	 * @var array
+	 */
+	private $prioritySortedListerners;
 
 	public function __construct() {
 		$this->listeners = [];
+		$this->prioritySortedListerners = [];
 	}
 
 	/**
@@ -19,6 +32,9 @@ class ListenerProvider implements \Psr\EventDispatcher\ListenerProviderInterface
 	 */
 	public function addListener(string $eventName, callable $listener, int $priority = 0) {
 		$this->listeners[$eventName][$priority][] = $listener;
+
+		// Clear cache
+		$this->prioritySortedListerners[$eventName] = [];
 	}
 
 	/**
@@ -29,8 +45,16 @@ class ListenerProvider implements \Psr\EventDispatcher\ListenerProviderInterface
 	public function getListenersForEvent(object $event) : iterable {
 		$eventName = $event instanceof IEvent ? $event->getName() : get_class($event);
 		if (!isset($this->listeners[$eventName])) return [];
+
+		// Cache hit
+		if (!empty($this->prioritySortedListerners[$eventName])) {
+			return $this->prioritySortedListerners[$eventName];
+		}
+
+		// Cache miss
 		krsort($this->listeners[$eventName]);
-		return array_merge(...$this->listeners[$eventName]);
+		$this->prioritySortedListerners[$eventName] = array_merge(...$this->listeners[$eventName]);
+		return $this->prioritySortedListerners[$eventName];
 	}
 
 }
